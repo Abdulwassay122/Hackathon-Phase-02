@@ -256,6 +256,128 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 
 ## Active Technologies
 - Python 3.11 + FastAPI, SQLModel, psycopg2-binary (PostgreSQL driver) (001-todo-backend)
+- Python 3.11 + FastAPI, SQLModel, PyJWT[crypto]==2.8.0, python-dotenv (002-jwt-auth)
+- Neon Serverless PostgreSQL (existing from Phase 1) (002-jwt-auth)
 
 ## Recent Changes
 - 001-todo-backend: Added Python 3.11 + FastAPI, SQLModel, psycopg2-binary (PostgreSQL driver)
+- 002-jwt-auth: Implemented JWT authentication with user data isolation and token expiry enforcement
+
+## Authentication Implementation Notes (Phase 2 - JWT Auth)
+
+### Overview
+Phase 2 implemented JWT-based authentication for the Todo Backend API, transforming it from a single-user application to a secure multi-user system with proper user data isolation.
+
+### Key Implementation Details
+
+#### 1. JWT Token Verification
+- **Location**: `backend/src/auth/jwt_handler.py`
+- **Algorithm**: HS256 (HMAC with SHA-256)
+- **Token Claims**: Requires `sub` (user ID) and `exp` (expiration) claims
+- **Clock Skew Tolerance**: 10 seconds leeway for time synchronization issues
+- **Error Handling**: Distinguishes between expired tokens (401) and invalid tokens (401)
+
+#### 2. Authentication Flow
+1. Frontend obtains JWT token from Better Auth after user login
+2. Frontend includes token in `Authorization: Bearer <token>` header
+3. Backend extracts token via `get_current_user` dependency
+4. `JWTHandler.verify_token()` validates signature and expiration
+5. `JWTHandler.extract_user_id()` extracts user ID from token
+6. User ID is used to filter data and verify ownership
+
+#### 3. API Changes (Breaking)
+- **Removed**: `user_id` from URL paths (was `/api/{user_id}/tasks`)
+- **New**: All endpoints now at `/api/tasks/*` with authentication required
+- **User ID Source**: Extracted from JWT token, not URL or request body
+- **Authentication**: All endpoints (except root) require valid JWT Bearer token
+
+#### 4. User Data Isolation
+- **Implementation**: All queries filter by authenticated user's ID
+- **Ownership Verification**: Two-step check for individual resource access:
+  1. Check if resource exists (404 if not found)
+  2. Check if user owns resource (403 if unauthorized)
+- **Security Logging**: All unauthorized access attempts are logged with user IDs and resource IDs
+
+#### 5. Error Response Standards
+- **401 Unauthorized**: Missing, invalid, or expired token
+- **403 Forbidden**: Valid token but insufficient permissions (cross-user access)
+- **404 Not Found**: Resource doesn't exist
+- **422 Validation Error**: Invalid request data
+
+#### 6. Security Features
+- **Stateless Authentication**: No session storage, tokens are self-contained
+- **Token Expiry**: Enforced on every request, expired tokens rejected
+- **Secret Validation**: Minimum 32-character secret key required
+- **No Secret Exposure**: JWT secret never appears in error messages or logs
+- **Security Logging**: Unauthorized access attempts logged with context
+
+#### 7. Testing Strategy
+- **Unit Tests**: JWT handler token verification and user ID extraction
+- **Integration Tests**: End-to-end authentication flow for all endpoints
+- **Contract Tests**: OpenAPI specification compliance with authentication
+- **Test Coverage**: Authentication, authorization, token expiry, cross-user access
+
+#### 8. Configuration
+- **Environment Variables**:
+  - `BETTER_AUTH_SECRET`: Shared secret for JWT verification (min 32 chars)
+  - `JWT_ALGORITHM`: Algorithm for JWT signing (default: HS256)
+  - `DATABASE_URL`: Database connection string
+  - `LOG_LEVEL`: Logging level (default: INFO)
+
+#### 9. Swagger UI Integration
+- **Authorization Button**: Click "Authorize" to enter JWT token
+- **Persistent Auth**: Token persists across page refreshes
+- **Format**: Enter token as `Bearer <your-token>`
+- **Documentation**: Updated API description with authentication instructions
+
+#### 10. Known Limitations & Future Enhancements
+- **No Refresh Tokens**: Tokens must be re-issued after expiration
+- **No Token Revocation**: Tokens valid until expiration (stateless design)
+- **No Rate Limiting**: Consider adding rate limiting for production
+- **No RBAC**: All authenticated users have same permissions (future: role-based access)
+
+### File Structure Changes
+```
+backend/
+├── src/
+│   ├── auth/                    # NEW: Authentication module
+│   │   ├── __init__.py
+│   │   ├── jwt_handler.py       # JWT verification and user extraction
+│   │   └── dependencies.py      # FastAPI authentication dependencies
+│   ├── api/
+│   │   └── task_routes.py       # UPDATED: All endpoints require auth
+│   ├── config.py                # UPDATED: Added JWT configuration
+│   └── main.py                  # UPDATED: Swagger UI auth, route prefix
+└── tests/
+    ├── unit/
+    │   └── test_jwt_handler.py  # NEW: JWT handler unit tests
+    ├── integration/
+    │   └── test_api_auth.py     # NEW: Authentication integration tests
+    └── contract/
+        └── test_contracts.py    # UPDATED: Contract tests with auth
+```
+
+### Migration Guide for Existing Clients
+1. **Obtain JWT Token**: Integrate with Better Auth to get user tokens
+2. **Update API Calls**: Remove `user_id` from URL paths
+3. **Add Authorization Header**: Include `Authorization: Bearer <token>` in all requests
+4. **Handle 401/403 Errors**: Implement token refresh and permission error handling
+5. **Update Base URL**: Change from `/api/{user_id}/tasks` to `/api/tasks`
+
+### Performance Considerations
+- **Authentication Overhead**: JWT verification adds ~5-10ms per request
+- **No Database Lookups**: User ID extracted from token (no user table query)
+- **Stateless Design**: Scales horizontally without session storage
+- **Clock Skew Tolerance**: 10-second leeway prevents false expiration errors
+
+### Security Best Practices Implemented
+✓ Minimum 32-character secret key enforced
+✓ Token expiration checked on every request
+✓ User data isolation at database query level
+✓ Ownership verification before resource access
+✓ Security logging for unauthorized attempts
+✓ No secrets in error messages or logs
+✓ HTTPS recommended for production (tokens vulnerable over HTTP)
+✓ Input validation on all endpoints
+✓ Proper HTTP status codes for security errors
+

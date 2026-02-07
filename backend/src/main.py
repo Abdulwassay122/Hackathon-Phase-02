@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.security import HTTPBearer
 from .logging_config import setup_logging
 from src.database.database import engine
 from sqlmodel import SQLModel
@@ -6,11 +7,36 @@ from sqlmodel import SQLModel
 # Set up logging
 logger = setup_logging()
 
+# T062: Configure Bearer authentication for Swagger UI
+security = HTTPBearer()
+
 # Create FastAPI app
 app = FastAPI(
     title="Todo Backend API",
-    description="RESTful API for managing user tasks in a Todo application",
-    version="1.0.0"
+    description="""
+RESTful API for managing user tasks in a Todo application.
+
+## Authentication
+
+All API endpoints (except root) require JWT Bearer token authentication.
+
+To authenticate:
+1. Obtain a JWT token from your authentication provider (Better Auth)
+2. Click the "Authorize" button below
+3. Enter your token in the format: `Bearer <your-token>`
+4. All subsequent requests will include the authentication header
+
+## Security
+
+- All endpoints enforce user data isolation
+- Tokens are verified on every request
+- Expired tokens are automatically rejected
+- Users can only access their own tasks
+    """,
+    version="2.0.0",
+    swagger_ui_parameters={
+        "persistAuthorization": True
+    }
 )
 
 @app.on_event("startup")
@@ -33,7 +59,7 @@ async def root():
 # Import and include API routes (moved to bottom to avoid circular imports)
 def register_routes():
     from src.api.task_routes import router as task_router
-    app.include_router(task_router, prefix="/api/{user_id}", tags=["tasks"])
+    app.include_router(task_router, prefix="/api", tags=["tasks"])
 
 # Register routes after app is created
 register_routes()

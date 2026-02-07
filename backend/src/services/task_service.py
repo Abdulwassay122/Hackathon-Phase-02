@@ -31,9 +31,20 @@ def get_tasks_by_user(session: Session, user_id: int) -> List[Task]:
     return tasks
 
 
+def get_task_by_id(session: Session, task_id: int) -> Optional[Task]:
+    """
+    Get a specific task by ID (without user filtering)
+    Used for ownership verification
+    """
+    statement = select(Task).where(Task.id == task_id)
+    task = session.exec(statement).first()
+    return task
+
+
 def get_task_by_id_and_user(session: Session, task_id: int, user_id: int) -> Optional[Task]:
     """
     Get a specific task by ID and user ID
+    Verifies ownership by filtering on both task_id and user_id
     """
     statement = select(Task).where(Task.id == task_id, Task.user_id == user_id)
     task = session.exec(statement).first()

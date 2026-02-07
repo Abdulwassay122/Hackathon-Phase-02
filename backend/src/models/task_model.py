@@ -10,8 +10,12 @@ class TaskBase(SQLModel):
     user_id: int  # User ID to identify task owner
 
 
-class TaskCreate(TaskBase):
-    pass  # Inherits all fields from TaskBase
+class TaskCreate(SQLModel):
+    """Task creation model - user_id is optional as it's set from JWT token"""
+    title: str = Field(min_length=1, max_length=255)
+    description: Optional[str] = Field(default=None, max_length=1000)
+    completed: bool = Field(default=False)
+    user_id: Optional[int] = None  # Optional - automatically set from authenticated user
 
 
 class Task(TaskBase, table=True):
