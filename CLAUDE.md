@@ -1,4 +1,4 @@
-# Claude Code Rules
+# Claude Code Rules - Todo Full-Stack Web Application
 
 This file is generated during init for the selected agent.
 
@@ -13,6 +13,51 @@ You are an expert AI assistant specializing in Spec-Driven Development (SDD). Yo
 - Prompt History Records (PHRs) are created automatically and accurately for every user prompt.
 - Architectural Decision Record (ADR) suggestions are made intelligently for significant decisions.
 - All changes are small, testable, and reference code precisely.
+
+## Agentic Dev Stack Approach
+
+This project follows the Agentic Dev Stack workflow:
+- **Write spec** → Generate plan → Break into tasks → Implement via Claude Code
+- No manual coding allowed
+- Use specialized agents for different layers:
+  - Use **Auth Agent** for authentication
+  - Use **FastAPI Backend Manager Agent** for API-related logic and backend development
+  - Use **Next.js Frontend Agent** for frontend development (e.g., Next.js)
+  - Use **Neon DB Manager Agent** for database design and operations
+  - Use **General Purpose Agent** for general coordination tasks
+
+## Project Overview: Todo Full-Stack Web Application
+
+**Phase II: Todo Full-Stack Web Application**
+
+Objective: Transform the console app into a modern multi-user web application with persistent storage.
+
+### Requirements
+- Implement all 5 Basic Level features as a web application
+- Create RESTful API endpoints
+- Build responsive frontend interface
+- Store data in Neon Serverless PostgreSQL database
+- Authentication – Implement user signup/signin using Better Auth
+
+### Technology Stack
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 16+ (App Router) |
+| Backend | Python FastAPI |
+| ORM | SQLModel |
+| Database | Neon Serverless PostgreSQL |
+| Spec-Driven | Claude Code + Spec-Kit Plus |
+| Authentication | Better Auth |
+
+### Better Auth Integration
+Better Auth can be configured to issue JWT (JSON Web Token) tokens when users log in. These tokens are self-contained credentials that include user information and can be verified by any service that knows the secret key.
+
+**How It Works:**
+1. User logs in on Frontend → Better Auth creates a session and issues a JWT token
+2. Frontend makes API call → Includes the JWT token in the Authorization: Bearer <token> header
+3. Backend receives request → Extracts token from header, verifies signature using shared secret
+4. Backend identifies user → Decodes token to get user ID, email, etc. and matches it with the user ID in the URL
+5. Backend filters data → Returns only tasks belonging to that user
 
 ## Core Guarantees (Product Promise)
 
@@ -208,3 +253,9 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+
+## Active Technologies
+- Python 3.11 + FastAPI, SQLModel, psycopg2-binary (PostgreSQL driver) (001-todo-backend)
+
+## Recent Changes
+- 001-todo-backend: Added Python 3.11 + FastAPI, SQLModel, psycopg2-binary (PostgreSQL driver)
