@@ -1,15 +1,15 @@
 <!-- SYNC IMPACT REPORT
-Version change: 1.0.0 → 1.1.0
+Version change: 1.1.0 → 1.2.0
 Modified principles: None
 Added sections:
-  - Principle VII: Authentication and Security (new principle for Phase 2)
-  - Updated Technology Stack Requirements to reflect Better Auth active usage
-  - Updated Development Workflow to include authentication phase
+  - Principle VIII: Frontend Integration and User Experience (new principle for Phase 3)
+  - Updated Technology Stack Requirements to reflect active Next.js usage
+  - Updated Development Workflow to include Phase 3 implementation details
 Removed sections: None
 Templates requiring updates:
   - ✅ plan-template.md: Constitution Check section will automatically reflect new principle
   - ✅ spec-template.md: No changes needed (technology-agnostic)
-  - ✅ tasks-template.md: No changes needed (already supports security tasks)
+  - ✅ tasks-template.md: No changes needed (already supports frontend tasks)
 Follow-up TODOs: None
 -->
 # Todo Full-Stack Web Application Constitution
@@ -39,27 +39,37 @@ Strong user isolation and data protection must be enforced at all levels. The ap
 
 **Rationale**: Security cannot be an afterthought. By establishing authentication as a core principle, we ensure that user data isolation, token verification, and trust boundaries are consistently applied across all features. This prevents common security vulnerabilities such as insecure direct object references (IDOR) and ensures that authentication logic is not scattered throughout the codebase.
 
+### VIII. Frontend Integration and User Experience
+The frontend must maintain clear separation between UI presentation and business logic, with all business rules enforced by the backend API. Secure client-to-server communication must be established through JWT tokens attached to every API request. The UI state must accurately reflect the backend state at all times, with proper synchronization after all mutations. The application must provide a responsive and accessible user experience that works across different devices and screen sizes. All user flows must be reproducible and testable from the browser alone without requiring backend code inspection. Frontend validation serves only as a user experience enhancement and must never be relied upon for security or data integrity. Better Auth must be used exclusively for authentication flows (signup, signin, session management) with JWT tokens obtained from Better Auth and passed to the backend API. The frontend must handle authentication errors gracefully and redirect users appropriately based on authentication state. All API communication must use REST principles with no WebSockets or alternative protocols. UI components must be designed for reusability and maintainability following Next.js App Router conventions.
+
+**Rationale**: A well-architected frontend ensures that security boundaries are respected, user experience is consistent, and the application remains maintainable as it grows. By establishing clear principles for frontend integration, we prevent common pitfalls such as client-side security enforcement, state synchronization issues, and tight coupling between UI and business logic. The exclusive use of Better Auth for authentication ensures a consistent, secure authentication flow while the REST-only constraint maintains simplicity and debuggability.
+
 ## Technology Stack Requirements
 The application must strictly adhere to the defined technology stack:
 - Backend Framework: FastAPI
 - ORM: SQLModel
 - Database: Neon Serverless PostgreSQL
-- Authentication: Better Auth (frontend) with JWT verification (backend)
-- Frontend: Next.js 16+ (for subsequent phases)
+- Authentication: Better Auth (frontend session management) with JWT verification (backend)
+- Frontend Framework: Next.js 16+ with App Router
+- Frontend-Backend Communication: REST API over HTTPS
+- State Management: React hooks and Next.js built-in capabilities
 No deviations from the approved technology stack are permitted without explicit constitutional amendment.
 
 ## Development Workflow and Constraints
 - Phase 1: Backend-only implementation (no authentication, no frontend)
 - Phase 2: Authentication and security layer (JWT verification, user isolation)
-- Phase 3: Frontend integration with authenticated API (subsequent phase)
+- Phase 3: Frontend integration with authenticated API (Next.js + Better Auth)
 - Persistent storage using Neon Serverless PostgreSQL is mandatory
 - ORM layer must be implemented using SQLModel only
+- Frontend must be implemented using Next.js 16+ App Router only
+- Authentication flows must use Better Auth exclusively
 - Manual edits to generated code are prohibited
-- All functionality must be verifiable via API calls before proceeding to subsequent phases
+- All functionality must be verifiable via API calls before frontend integration
+- Frontend functionality must be verifiable via browser testing
 - No implementation without corresponding specification
-- Authentication must be added as a separate phase with its own specification and testing
+- Each phase must have its own specification, plan, and testing strategy
 
 ## Governance
 This constitution governs all aspects of the Todo Full-Stack Web Application development. All implementation decisions must align with these principles. Amendments to this constitution require explicit documentation, stakeholder approval, and a migration plan for existing code. All pull requests and code reviews must verify compliance with these principles. The development team must refer to this constitution when making architectural decisions that impact the core principles.
 
-**Version**: 1.1.0 | **Ratified**: 2026-02-06 | **Last Amended**: 2026-02-07
+**Version**: 1.2.0 | **Ratified**: 2026-02-06 | **Last Amended**: 2026-02-07
