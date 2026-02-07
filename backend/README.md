@@ -49,6 +49,143 @@ uvicorn src.main:app --reload --port 8000
 
 The API will be available at `http://localhost:8000`
 
+## CORS Configuration
+
+Cross-Origin Resource Sharing (CORS) must be configured to allow your frontend application to communicate with the backend API.
+
+### Setup
+
+Add the `CORS_ORIGINS` environment variable to your `.env` file:
+
+```env
+# CORS Configuration
+CORS_ORIGINS=http://localhost:3000
+```
+
+**Format:**
+- **Single origin**: `CORS_ORIGINS=http://localhost:3000`
+- **Multiple origins** (comma-separated): `CORS_ORIGINS=http://localhost:3000,http://localhost:3001`
+
+**Examples:**
+- Development: `CORS_ORIGINS=http://localhost:3000`
+- Staging: `CORS_ORIGINS=https://staging.example.com,http://localhost:3000`
+- Production: `CORS_ORIGINS=https://app.example.com`
+
+### Security Requirements
+
+The CORS configuration enforces strict security policies:
+
+- ✅ **Explicit origins only** - Must specify exact URLs (e.g., `http://localhost:3000`)
+- ✅ **Protocol required** - Must include `http://` or `https://`
+- ✅ **No trailing slashes** - Use `http://localhost:3000`, not `http://localhost:3000/`
+- ✅ **No wildcards** - Wildcard `*` origins are rejected for security
+- ✅ **Credentials enabled** - Supports JWT tokens in Authorization headers
+- ✅ **Explicit methods** - Only allows GET, POST, PUT, PATCH, DELETE
+- ✅ **Explicit headers** - Only allows Authorization and Content-Type headers
+
+### Verification
+
+When the backend starts, it logs the CORS configuration:
+
+```
+============================================================
+CORS Configuration
+============================================================
+Allowed Origins (1):
+  - http://localhost:3000
+Allow Credentials: True
+Allow Methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+Allow Headers: ['Authorization', 'Content-Type']
+============================================================
+```
+
+If `CORS_ORIGINS` is not set, you'll see a warning:
+
+```
+WARNING: No origins configured - cross-origin requests will be blocked!
+```
+
+### Troubleshooting Common CORS Issues
+
+#### Issue: "CORS policy: No 'Access-Control-Allow-Origin' header"
+
+**Cause**: `CORS_ORIGINS` environment variable is not set or empty.
+
+**Solution**:
+1. Add `CORS_ORIGINS=http://localhost:3000` to your `.env` file
+2. Restart the backend server
+3. Check startup logs to confirm the origin is loaded
+
+#### Issue: "Origin 'http://localhost:3001' blocked by CORS policy"
+
+**Cause**: The requesting origin is not in the allowed origins list.
+
+**Solution**: Add the origin to `CORS_ORIGINS`:
+```env
+CORS_ORIGINS=http://localhost:3000,http://localhost:3001
+```
+
+#### Issue: "Wildcard origin (*) not allowed per security policy"
+
+**Cause**: Attempted to use `CORS_ORIGINS=*` which is rejected for security.
+
+**Solution**: Use explicit origin URLs:
+```env
+CORS_ORIGINS=http://localhost:3000
+```
+
+#### Issue: "Invalid origin format" or origin validation errors
+
+**Common causes and solutions**:
+- **Missing protocol**: Use `http://localhost:3000`, not `localhost:3000`
+- **Trailing slash**: Use `http://localhost:3000`, not `http://localhost:3000/`
+- **Wrong protocol**: Ensure `http://` for local development, `https://` for production
+- **Whitespace**: Remove spaces around origins in comma-separated lists
+
+#### Issue: Preflight OPTIONS requests failing
+
+**Cause**: Browser sends OPTIONS request before actual request, but CORS headers are missing.
+
+**Solution**:
+1. Verify CORS middleware is added in `main.py` (already configured)
+2. Check that `CORS_ORIGINS` includes the requesting origin
+3. Ensure the backend is running and accessible
+
+#### Issue: "Credentials mode is 'include' but Access-Control-Allow-Credentials is missing"
+
+**Cause**: Frontend is sending credentials (JWT tokens) but CORS is not configured to allow them.
+
+**Solution**: This is already configured (`allow_credentials=True`). Verify:
+1. `CORS_ORIGINS` is set to an explicit origin (not `*`)
+2. Backend logs show "Allow Credentials: True"
+3. Frontend is using the correct origin URL
+
+### Testing CORS Configuration
+
+**Test 1: Verify CORS headers in browser DevTools**
+1. Open your frontend application in a browser
+2. Open DevTools (F12) → Network tab
+3. Make an API request to the backend
+4. Click on the request and check Response Headers:
+   - `access-control-allow-origin` should match your frontend URL
+   - `access-control-allow-credentials` should be `true`
+
+**Test 2: Test with curl**
+```bash
+curl -H "Origin: http://localhost:3000" \
+     -H "Access-Control-Request-Method: POST" \
+     -H "Access-Control-Request-Headers: Authorization,Content-Type" \
+     -X OPTIONS \
+     http://localhost:8000/api/tasks \
+     -v
+```
+
+Expected response headers:
+- `access-control-allow-origin: http://localhost:3000`
+- `access-control-allow-credentials: true`
+- `access-control-allow-methods: GET, POST, PUT, PATCH, DELETE`
+- `access-control-allow-headers: Authorization, Content-Type`
+
 ## Authentication
 
 All API endpoints (except the root endpoint) require JWT Bearer token authentication.
@@ -81,6 +218,204 @@ print(f"Token: {token}")
 3. Enter your token in the format: `Bearer <your-token>`
 4. Click "Authorize"
 5. All subsequent requests will include the authentication header
+
+## Authentication Endpoints
+
+The backend provides authentication endpoints for user registration and login.
+
+### User Signup (Registration)
+
+Create a new user account and receive a JWT token for immediate use.
+
+**Endpoint**: `POST /api/auth/signup`
+
+**Request Body**:
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePass123",
+  "name": "John Doe"
+}
+```
+
+**Password Requirements**:
+- Minimum 8 characters
+- At least one letter (a-z or A-Z)
+- At least one number (0-9)
+
+**Success Response** (201 Created):
+```json
+{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "token_type": "bearer",
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "name": "John Doe"
+  }
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Password too short, missing letter/number, or empty name
+- `409 Conflict`: Email already registered
+- `422 Unprocessable Entity`: Invalid email format
+
+**Example with curl**:
+```bash
+curl -X POST http://localhost:8000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "SecurePass123",
+    "name": "John Doe"
+  }'
+```
+
+### User Login
+
+Authenticate with existing credentials and receive a JWT token.
+
+**Endpoint**: `POST /api/auth/login`
+
+**Request Body**:
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePass123"
+}
+```
+
+**Success Response** (200 OK):
+```json
+{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "token_type": "bearer",
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "name": "John Doe"
+  }
+}
+```
+
+**Error Responses**:
+- `401 Unauthorized`: Invalid email or password
+- `422 Unprocessable Entity`: Invalid email format
+
+**Example with curl**:
+```bash
+curl -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "SecurePass123"
+  }'
+```
+
+### Using the JWT Token
+
+After signup or login, use the `access_token` from the response to authenticate subsequent requests:
+
+```bash
+# Save the token
+TOKEN="eyJ0eXAiOiJKV1QiLCJhbGc..."
+
+# Use it in requests
+curl http://localhost:8000/api/users/1/tasks \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Token Details**:
+- Expires after 24 hours
+- Contains user ID and email in payload
+- Must be included in `Authorization` header as `Bearer <token>`
+
+### Troubleshooting Authentication Issues
+
+#### Issue 1: "Email already registered" (409 Conflict)
+
+**Cause**: Attempting to signup with an email that already exists in the database.
+
+**Solution**:
+- Use a different email address for signup
+- Or login with the existing email and password
+- To reset for testing: Delete the user from the database
+
+#### Issue 2: "Invalid email or password" (401 Unauthorized)
+
+**Possible Causes**:
+1. Wrong password entered
+2. Email doesn't exist in the database
+3. Password was changed after account creation
+
+**Solution**:
+- Verify the email and password are correct
+- Check for typos (passwords are case-sensitive)
+- If forgotten, password reset is not yet implemented (out of scope)
+- For testing: Create a new account with signup endpoint
+
+#### Issue 3: "Password must be at least 8 characters" (400 Bad Request)
+
+**Cause**: Password doesn't meet complexity requirements.
+
+**Solution**: Ensure password has:
+- At least 8 characters
+- At least one letter (a-z or A-Z)
+- At least one number (0-9)
+
+**Valid Examples**:
+- `SecurePass123`
+- `MyPassword1`
+- `Test1234`
+
+**Invalid Examples**:
+- `Pass1` (too short)
+- `Password` (no number)
+- `12345678` (no letter)
+
+#### Issue 4: "Token has expired" (401 Unauthorized)
+
+**Cause**: JWT token is older than 24 hours.
+
+**Solution**:
+- Login again to get a new token
+- Tokens automatically expire for security
+- Store the new token and use it for subsequent requests
+
+#### Issue 5: "Invalid authentication token" (401 Unauthorized)
+
+**Possible Causes**:
+1. Token is malformed or corrupted
+2. Token was generated with a different secret key
+3. Token format is incorrect in Authorization header
+
+**Solution**:
+- Verify token format: `Authorization: Bearer <token>`
+- Ensure no extra spaces or characters
+- Get a fresh token by logging in again
+- Check that BETTER_AUTH_SECRET is consistent
+
+#### Issue 6: "Name cannot be empty" (400 Bad Request)
+
+**Cause**: Name field is empty or contains only whitespace.
+
+**Solution**:
+- Provide a non-empty name during signup
+- Name is required and cannot be just spaces
+
+#### Issue 7: Database connection errors (500 Internal Server Error)
+
+**Possible Causes**:
+1. DATABASE_URL is incorrect or missing
+2. Database server is not running
+3. Network connectivity issues
+
+**Solution**:
+- Verify DATABASE_URL in `.env` file
+- Check database server is running and accessible
+- Test connection with database client
+- Check backend logs for detailed error messages
 
 ## API Usage Examples
 

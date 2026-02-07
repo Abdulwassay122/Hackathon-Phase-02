@@ -1,6 +1,8 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
-from .logging_config import setup_logging
+from .logging_config import setup_logging, log_cors_configuration
+from src.config import get_cors_config
 from src.database.database import engine
 from sqlmodel import SQLModel
 
@@ -39,6 +41,20 @@ To authenticate:
     }
 )
 
+# Load CORS configuration
+cors_config = get_cors_config()
+
+# Add CORS middleware (must be BEFORE route registration)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_config.allow_origins,
+    allow_credentials=cors_config.allow_credentials,
+    allow_methods=cors_config.allow_methods,
+    allow_headers=cors_config.allow_headers,
+    expose_headers=cors_config.expose_headers,
+    max_age=cors_config.max_age,
+)
+
 @app.on_event("startup")
 async def startup_event():
     """
@@ -47,6 +63,9 @@ async def startup_event():
     logger.info("Creating database tables...")
     SQLModel.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")
+
+    # Log CORS configuration
+    log_cors_configuration(cors_config)
 
 
 @app.get("/")
@@ -59,7 +78,10 @@ async def root():
 # Import and include API routes (moved to bottom to avoid circular imports)
 def register_routes():
     from src.api.task_routes import router as task_router
+    from src.api.auth_routes import router as auth_router
+
     app.include_router(task_router, prefix="/api", tags=["tasks"])
+    app.include_router(auth_router)  # Auth router already has /api/auth prefix
 
 # Register routes after app is created
 register_routes()

@@ -1,5 +1,10 @@
 import logging
 import sys
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.config import CORSConfig
+
 from src.config import LOG_LEVEL
 
 
@@ -26,3 +31,30 @@ def setup_logging():
         logger.addHandler(console_handler)
 
     return logger
+
+
+def log_cors_configuration(config: "CORSConfig"):
+    """
+    Log CORS configuration at application startup
+
+    Args:
+        config: CORSConfig instance with CORS settings
+    """
+    logger = logging.getLogger(__name__)
+
+    logger.info("=" * 60)
+    logger.info("CORS Configuration")
+    logger.info("=" * 60)
+
+    if config.allow_origins:
+        logger.info(f"Allowed Origins ({len(config.allow_origins)}):")
+        for origin in config.allow_origins:
+            logger.info(f"  - {origin}")
+    else:
+        logger.warning("No origins configured - cross-origin requests will be blocked!")
+
+    logger.info(f"Allow Credentials: {config.allow_credentials}")
+    logger.info(f"Allowed Methods: {', '.join(config.allow_methods)}")
+    logger.info(f"Allowed Headers: {', '.join(config.allow_headers)}")
+    logger.info(f"Preflight Cache: {config.max_age} seconds")
+    logger.info("=" * 60)

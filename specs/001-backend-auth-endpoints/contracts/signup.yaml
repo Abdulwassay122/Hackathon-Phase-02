@@ -1,0 +1,192 @@
+openapi: 3.0.3
+info:
+  title: User Signup API
+  description: Endpoint for user registration
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /api/auth/signup:
+    post:
+      summary: Register a new user
+      description: |
+        Creates a new user account with email, password, and name.
+        Returns a JWT access token upon successful registration.
+      operationId: signup
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            examples:
+              valid:
+                summary: Valid signup request
+                value:
+                  email: user@example.com
+                  password: SecurePass123
+                  name: John Doe
+              weak_password:
+                summary: Password too short
+                value:
+                  email: user@example.com
+                  password: Pass1
+                  name: John Doe
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              example:
+                access_token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwiZXhwIjoxNzA3NDM2ODAwfQ.signature
+                token_type: bearer
+                user:
+                  id: 1
+                  email: user@example.com
+                  name: John Doe
+        '400':
+          description: Validation error (password requirements not met)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                password_too_short:
+                  summary: Password too short
+                  value:
+                    detail: Password must be at least 8 characters
+                password_no_letter:
+                  summary: Password missing letter
+                  value:
+                    detail: Password must contain at least one letter
+                password_no_number:
+                  summary: Password missing number
+                  value:
+                    detail: Password must contain at least one number
+                empty_name:
+                  summary: Empty name
+                  value:
+                    detail: Name cannot be empty
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                detail: Email already registered
+        '422':
+          description: Unprocessable entity (invalid email format)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              example:
+                detail:
+                  - loc: [body, email]
+                    msg: value is not a valid email address
+                    type: value_error.email
+
+components:
+  schemas:
+    SignupRequest:
+      type: object
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address (must be unique)
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: User's password (min 8 chars, must contain letter and number)
+          example: SecurePass123
+        name:
+          type: string
+          minLength: 1
+          description: User's display name
+          example: John Doe
+
+    AuthResponse:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - user
+      properties:
+        access_token:
+          type: string
+          description: JWT access token for authentication
+          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwiZXhwIjoxNzA3NDM2ODAwfQ.signature
+        token_type:
+          type: string
+          enum: [bearer]
+          description: Token type (always "bearer")
+          example: bearer
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    UserResponse:
+      type: object
+      required:
+        - id
+        - email
+        - name
+      properties:
+        id:
+          type: integer
+          description: User's unique identifier
+          example: 1
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: user@example.com
+        name:
+          type: string
+          description: User's display name
+          example: John Doe
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Human-readable error message
+          example: Email already registered
+
+    ValidationErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+                description: Location of the error in the request
+              msg:
+                type: string
+                description: Error message
+              type:
+                type: string
+                description: Error type

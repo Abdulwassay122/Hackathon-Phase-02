@@ -258,6 +258,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Python 3.11 + FastAPI, SQLModel, psycopg2-binary (PostgreSQL driver) (001-todo-backend)
 - Python 3.11 + FastAPI, SQLModel, PyJWT[crypto]==2.8.0, python-dotenv (002-jwt-auth)
 - Neon Serverless PostgreSQL (existing from Phase 1) (002-jwt-auth)
+- Python 3.11 + FastAPI, SQLModel, passlib[bcrypt] (password hashing), PyJWT (JWT generation - already installed) (001-backend-auth-endpoints)
+- Neon Serverless PostgreSQL (already configured via DATABASE_URL) (001-backend-auth-endpoints)
 
 ## Recent Changes
 - 001-todo-backend: Added Python 3.11 + FastAPI, SQLModel, psycopg2-binary (PostgreSQL driver)

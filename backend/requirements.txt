@@ -5,3 +5,4 @@ python-dotenv==1.0.0
 pytest==7.4.3
 uvicorn==0.23.2
 PyJWT[crypto]==2.8.0
+passlib[bcrypt]==1.7.4
