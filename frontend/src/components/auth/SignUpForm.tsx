@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { validateEmail, validatePassword } from '@/lib/utils/validation';
-import { signUp } from '@/lib/auth/better-auth';
+import { useAuth } from '@/hooks/useAuth';
 
 export function SignUpForm() {
   const router = useRouter();
+  const { signup, loading: authLoading } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,7 +25,7 @@ export function SignUpForm() {
     setErrorMessage(null);
 
     // Client-side validation
-    const nameError = !name ? 'Name is required' : undefined;
+    const nameError = !name.trim() ? 'Name is required' : undefined;
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
 
@@ -40,29 +41,12 @@ export function SignUpForm() {
     setIsLoading(true);
 
     try {
-      // Call Better Auth signup
-      const result = await signUp(email, password, name);
-
-      if (result.error) {
-        setErrorMessage(result.error.message || 'Failed to create account');
-        return;
-      }
-
-      // Store session data
-      if (result.data?.token) {
-        localStorage.setItem('auth-token', result.data.token);
-        localStorage.setItem('user-session', JSON.stringify({
-          token: result.data.token,
-          userId: result.data.user.id,
-          email: result.data.user.email,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
-        }));
-      }
-
-      // Redirect to tasks page
-      router.push('/tasks');
+      // Call AuthContext signup method
+      await signup(email, password, name);
+      // Redirect is handled by AuthContext
     } catch (error) {
-      setErrorMessage('An unexpected error occurred. Please try again.');
+      const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.';
+      setErrorMessage(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -84,6 +68,7 @@ export function SignUpForm() {
         error={errors.name}
         required
         autoComplete="name"
+        disabled={isLoading || authLoading}
       />
 
       <Input
@@ -94,6 +79,7 @@ export function SignUpForm() {
         error={errors.email}
         required
         autoComplete="email"
+        disabled={isLoading || authLoading}
       />
 
       <Input
@@ -104,12 +90,13 @@ export function SignUpForm() {
         error={errors.password}
         required
         autoComplete="new-password"
+        disabled={isLoading || authLoading}
       />
 
       <Button
         type="submit"
         variant="primary"
-        isLoading={isLoading}
+        isLoading={isLoading || authLoading}
         className="w-full"
       >
         Sign up

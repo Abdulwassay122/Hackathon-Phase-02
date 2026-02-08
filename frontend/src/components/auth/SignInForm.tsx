@@ -5,11 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { validateEmail, validatePassword } from '@/lib/utils/validation';
-import { signIn } from '@/lib/auth/better-auth';
+import { useAuth } from '@/hooks/useAuth';
 
 export function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login, loading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -28,12 +29,12 @@ export function SignInForm() {
 
     // Client-side validation
     const emailError = validateEmail(email);
-    const passwordError = validatePassword(password);
+    const passwordError = !password ? 'Password is required' : undefined;
 
     if (emailError || passwordError) {
       setErrors({
         email: emailError || undefined,
-        password: passwordError || undefined,
+        password: passwordError,
       });
       return;
     }
@@ -41,30 +42,12 @@ export function SignInForm() {
     setIsLoading(true);
 
     try {
-      // Call Better Auth signin
-      const result = await signIn(email, password);
-
-      if (result.error) {
-        setErrorMessage(result.error.message || 'Invalid email or password');
-        return;
-      }
-
-      // Store session data
-      if (result.data?.token) {
-        localStorage.setItem('auth-token', result.data.token);
-        localStorage.setItem('user-session', JSON.stringify({
-          token: result.data.token,
-          userId: result.data.user.id,
-          email: result.data.user.email,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
-        }));
-      }
-
-      // Redirect to tasks page or original destination
-      const redirect = searchParams.get('redirect') || '/tasks';
-      router.push(redirect);
+      // Call AuthContext login method
+      await login(email, password);
+      // Redirect is handled by AuthContext
     } catch (error) {
-      setErrorMessage('An unexpected error occurred. Please try again.');
+      const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.';
+      setErrorMessage(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -92,6 +75,7 @@ export function SignInForm() {
         error={errors.email}
         required
         autoComplete="email"
+        disabled={isLoading || authLoading}
       />
 
       <Input
@@ -102,12 +86,13 @@ export function SignInForm() {
         error={errors.password}
         required
         autoComplete="current-password"
+        disabled={isLoading || authLoading}
       />
 
       <Button
         type="submit"
         variant="primary"
-        isLoading={isLoading}
+        isLoading={isLoading || authLoading}
         className="w-full"
       >
         Sign in

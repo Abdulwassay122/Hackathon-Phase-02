@@ -2,30 +2,24 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { signOut } from '@/lib/auth/better-auth';
-import { clearSession } from '@/lib/auth/session';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 
 export function Header() {
   const router = useRouter();
+  const { logout } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogout = async () => {
     setIsLoading(true);
 
     try {
-      // Call Better Auth signOut
-      await signOut();
-
-      // Clear session from localStorage
-      clearSession();
-
-      // Redirect to signin page
-      router.push('/signin');
+      // Call AuthContext logout method
+      logout();
+      // Redirect is handled by AuthContext
     } catch (error) {
       console.error('Logout failed:', error);
-      // Even if signOut fails, clear local session and redirect
-      clearSession();
+      // Even if logout fails, redirect to signin
       router.push('/signin');
     } finally {
       setIsLoading(false);
