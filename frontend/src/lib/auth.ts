@@ -3,7 +3,7 @@
  * Manages JWT tokens in browser localStorage
  */
 
-const TOKEN_KEY = 'auth_token';
+const TOKEN_KEY = 'auth-token';
 
 /**
  * Check if localStorage is available

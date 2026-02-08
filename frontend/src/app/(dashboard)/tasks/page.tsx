@@ -47,7 +47,6 @@ export default function TasksPage() {
   const fetchTasks = async () => {
     setIsLoading(true);
     setError(null);
-    console.log("getToken", getToken());
     try {
       const fetchedTasks = await taskAPI.list();
       setTasks(fetchedTasks);
@@ -120,7 +119,7 @@ export default function TasksPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="container max-w-4xl mx-auto py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Tasks</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 ">My Tasks</h1>
           <p className="text-gray-600">Manage your tasks and stay organized</p>
         </div>
 

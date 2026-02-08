@@ -66,3 +66,23 @@ uvicorn.access.log
 # Database
 *.sqlite3
 *.sqlite3-journal
+
+# Node.js / JavaScript / TypeScript
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+*.tsbuildinfo
+.next/
+out/
+.turbo/
+.vercel/
+*.local
+
+# Next.js
+.next/
+out/
+build/
+dist/

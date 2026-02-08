@@ -126,13 +126,13 @@ export function TaskItem({ task, onUpdate, onDelete, onToggleComplete }: TaskIte
 
   return (
     <>
-      <div className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
+      <div className="border rounded-lg p-6 bg-white hover:shadow-md transition-shadow">
         <div className="flex items-start gap-3">
           <input
             type="checkbox"
             checked={task.completed}
             onChange={handleToggleComplete}
-            disabled={isLoading}
+            disabled={isLoading || task.completed}
             className="mt-1 w-5 h-5 cursor-pointer"
           />
 
