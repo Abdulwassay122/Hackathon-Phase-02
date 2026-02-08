@@ -5,7 +5,7 @@ import { Task } from '@/types/task';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { validateTaskTitle, validateTaskDescription } from '@/lib/utils/validation';
+import { validateTaskTitle, validateTaskDescription } from '../../lib/utils/validation';
 
 interface TaskItemProps {
   task: Task;
