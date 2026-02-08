@@ -12,7 +12,8 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('auth-token');
 
   // Protected routes that require authentication
-  const protectedPaths = ['/tasks', '/dashboard'];
+  // Note: /tasks removed - now uses client-side auth check
+  const protectedPaths = ['/dashboard'];
   const isProtectedPath = protectedPaths.some(path =>
     request.nextUrl.pathname.startsWith(path)
   );

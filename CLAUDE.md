@@ -264,6 +264,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Browser localStorage for JWT token persistence (005-frontend-auth-integration)
 - Python 3.11 + FastAPI, SQLModel, passlib[bcrypt] (password hashing) (006-fix-password-length)
 - Neon Serverless PostgreSQL (existing, no schema changes) (006-fix-password-length)
+- TypeScript/JavaScript with Next.js 16+ (App Router) + Next.js 16+, React 18+, existing AuthContext (from feature 005-frontend-auth-integration) (007-fix-tasks-auth)
+- Browser localStorage (JWT token storage) (007-fix-tasks-auth)
 
 ## Recent Changes
 - 001-todo-backend: Added Python 3.11 + FastAPI, SQLModel, psycopg2-binary (PostgreSQL driver)

@@ -117,6 +117,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setTokenState(data.access_token);
       setError(null);
 
+      console.log("Success")
+
       // Redirect to tasks page
       router.push("/tasks");
     } catch (err) {
