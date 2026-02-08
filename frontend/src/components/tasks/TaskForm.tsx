@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { TaskCreate } from '@/types/task';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { validateTaskTitle, validateTaskDescription } from '@/lib/utils/validation';
+import { validateTaskTitle, validateTaskDescription } from '../../lib/utils/validation';
 
 interface TaskFormProps {
   onSubmit: (data: TaskCreate) => Promise<void>;

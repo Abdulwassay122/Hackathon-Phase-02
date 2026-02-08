@@ -1,11 +1,14 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Task } from '@/types/task';
-import { Input, Textarea } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
-import { validateTaskTitle, validateTaskDescription } from '../../lib/utils/validation';
+import { useState } from "react";
+import { Task } from "@/types/task";
+import { Input, Textarea } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
+import {
+  validateTaskTitle,
+  validateTaskDescription,
+} from "../../lib/utils/validation";
 
 interface TaskItemProps {
   task: Task;
@@ -14,12 +17,22 @@ interface TaskItemProps {
   onToggleComplete: (id: number) => Promise<void>;
 }
 
-export function TaskItem({ task, onUpdate, onDelete, onToggleComplete }: TaskItemProps) {
+export function TaskItem({
+  task,
+  onUpdate,
+  onDelete,
+  onToggleComplete,
+}: TaskItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
-  const [editDescription, setEditDescription] = useState(task.description || '');
-  const [errors, setErrors] = useState<{ title?: string; description?: string }>({});
+  const [editDescription, setEditDescription] = useState(
+    task.description || "",
+  );
+  const [errors, setErrors] = useState<{
+    title?: string;
+    description?: string;
+  }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -37,7 +50,7 @@ export function TaskItem({ task, onUpdate, onDelete, onToggleComplete }: TaskIte
   const handleEdit = () => {
     setIsEditing(true);
     setEditTitle(task.title);
-    setEditDescription(task.description || '');
+    setEditDescription(task.description || "");
     setErrors({});
     setErrorMessage(null);
   };
@@ -45,7 +58,7 @@ export function TaskItem({ task, onUpdate, onDelete, onToggleComplete }: TaskIte
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditTitle(task.title);
-    setEditDescription(task.description || '');
+    setEditDescription(task.description || "");
     setErrors({});
     setErrorMessage(null);
   };
@@ -116,7 +129,11 @@ export function TaskItem({ task, onUpdate, onDelete, onToggleComplete }: TaskIte
           <Button onClick={handleSaveEdit} isLoading={isLoading}>
             Save
           </Button>
-          <Button onClick={handleCancelEdit} variant="secondary" disabled={isLoading}>
+          <Button
+            onClick={handleCancelEdit}
+            variant="secondary"
+            disabled={isLoading}
+          >
             Cancel
           </Button>
         </div>
@@ -137,11 +154,15 @@ export function TaskItem({ task, onUpdate, onDelete, onToggleComplete }: TaskIte
           />
 
           <div className="flex-1">
-            <h3 className={`text-lg font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+            <h3
+              className={`text-lg font-medium ${task.completed ? "line-through text-gray-500" : "text-gray-900"}`}
+            >
               {task.title}
             </h3>
             {task.description && (
-              <p className={`mt-1 text-sm ${task.completed ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p
+                className={`mt-1 text-sm ${task.completed ? "text-gray-400" : "text-gray-600"}`}
+              >
                 {task.description}
               </p>
             )}
@@ -176,12 +197,19 @@ export function TaskItem({ task, onUpdate, onDelete, onToggleComplete }: TaskIte
         onClose={() => setIsDeleting(false)}
         title="Delete Task"
       >
-        <p className="mb-4">Are you sure you want to delete this task? This action cannot be undone.</p>
+        <p className="mb-4">
+          Are you sure you want to delete this task? This action cannot be
+          undone.
+        </p>
         <div className="flex gap-2 justify-end">
           <Button onClick={handleDelete} variant="danger" isLoading={isLoading}>
             Delete
           </Button>
-          <Button onClick={() => setIsDeleting(false)} variant="secondary" disabled={isLoading}>
+          <Button
+            onClick={() => setIsDeleting(false)}
+            variant="secondary"
+            disabled={isLoading}
+          >
             Cancel
           </Button>
         </div>
