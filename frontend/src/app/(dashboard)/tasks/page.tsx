@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { TaskList } from "@/components/tasks/TaskList";
-import { TaskForm } from "@/components/tasks/TaskForm";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { Task, TaskCreate } from "@/types/task";
-import { APIClient } from "@/lib/api/client";
-import { TaskAPI } from "@/lib/api/tasks";
-import { getToken, clearSession } from "@/lib/auth/session";
-import { useAuth } from "@/hooks/useAuth";
+import { TaskList } from "../../../components/tasks/TaskList";
+import { TaskForm } from "../../../components/tasks/TaskForm";
+import { LoadingSpinner } from "../../../components/ui/LoadingSpinner";
+import { Task, TaskCreate } from "../../../types/task";
+import { APIClient } from "../../../lib/api/client";
+import { TaskAPI } from "../../../lib/api/tasks";
+import { getToken, clearSession } from "../../../lib/auth/session";
+import { useAuth } from "../../../hooks/useAuth";
 
 export default function TasksPage() {
   const router = useRouter();

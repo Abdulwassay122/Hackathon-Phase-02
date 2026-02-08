@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Task } from "@/types/task";
-import { Input, Textarea } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
-import { Modal } from "@/components/ui/Modal";
+import { Task } from "../../types/task";
+import { Input, Textarea } from "../../components/ui/Input";
+import { Button } from "../../components/ui/Button";
+import { Modal } from "../../components/ui/Modal";
 import {
   validateTaskTitle,
   validateTaskDescription,

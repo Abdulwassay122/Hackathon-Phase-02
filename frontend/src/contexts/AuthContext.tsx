@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { setToken, getToken, clearToken } from "@/lib/auth";
+import { setToken, getToken, clearToken } from "../lib/auth";
 
 /**
  * User interface representing authenticated user data
